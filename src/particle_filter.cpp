@@ -53,10 +53,10 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         p.theta= dist_theta(gen);
         p.weight= 1.0;
         particles.push_back(p);
-        
+        weights.push_back(1.0);
     }
 
-    
+    is initialized = true;
     
 }
 
