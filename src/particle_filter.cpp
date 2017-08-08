@@ -26,27 +26,17 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
     //   x, y, theta and their uncertainties from GPS) and all weights to 1.
     // Add random Gaussian noise to each particle.
     
-    
     default_random_engine gen;
-    double std_x, std_y, std_theta; // Standard deviations for x, y, and psi
-    
-    // TODO: Set standard deviations for x, y, and psi.
-    std_x  =std[0]; //2;
-    std_y  =std[1];//2;
-    std_theta=std[2]; //std_psi=std[2]//0.05;
-    
     
     // This line creates a normal (Gaussian) distribution for x  y and psi..
-    normal_distribution<double> dist_x(x, std_x);//(gps_x, std_x);
-    normal_distribution<double> dist_y(y, std_y);//(gps_y, std_y);
-    normal_distribution<double> dist_theta(theta, std_theta);
+    normal_distribution<double> dist_x(x, std[0]);//(gps_x, std_x);
+    normal_distribution<double> dist_y(y, std[1]);//(gps_y, std_y);
+    normal_distribution<double> dist_theta(theta, std[2]);
     
     //Set the number of particles
     num_particles = 100;
     
     for (int i = 0; i < num_particles; ++i) {
-        //double sample_x, sample_y, sample_psi;
-        
         Particle p;
         p.id    = i;
         p.x     = dist_x(gen);
@@ -55,11 +45,8 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         p.weight= 1.0;
         particles.push_back(p);
         weights.push_back(1.0);
-        
     }
-    
     is_initialized = true;
-    
 }
 
 
@@ -168,9 +155,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 }
 
 void ParticleFilter::resample() {
-    // TODO: Resample particles with replacement with probability proportional to their weight.
-    // NOTE: You may find std::discrete_distribution helpful here.
-    //   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+    //: Resample particles with replacement with probability proportional to their weight.
+   
     default_random_engine gen;
     //forum contrib: resamples based on the weights
     discrete_distribution<> disc_dist(weights.begin(), weights.end());
