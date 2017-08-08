@@ -115,16 +115,54 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                                    std::vector<LandmarkObs> observations, Map map_landmarks) {
+    // Path to follow suggested by mentor Qiang:
     // Update the weights of each particle using a mult-variate Gaussian distribution.
-    
     // predict landmarks within sensor_range
-    
     // transformation based on p_x, p_y, p_theta and observed landmark positions.
-    
     // Association
-    
     // extract corresponding prediction // update weight
     
+    Map single_landmarks;
+    single_landmarks.landmark_list.clear();
+    weights.clear();
+    
+    for (auto& p : particles){
+        // assign each observation to the closest landmark
+        for (int z = 0; z < map_landmarks.landmark_list.size(); ++z){
+            if (dist(p.x, p.y, map_landmarks.landmark_list[z].x_f, map_landmarks.landmark_list[z].y_f) < sensor_range) {
+                single_landmarks.landmark_list.push_back(map_landmarks.landmark_list[z]);
+            }
+        }
+        // init the weight
+        p.weight = 1.0;
+        LandmarkObs obs;
+        
+        for (auto& obs : observations){
+            int closest_id = 0;
+            double closest_dist_obs_to_landmark = sensor_range;
+            double obs_x = cos(p.theta)*obs.x - sin(p.theta)*obs.y + p.x;
+            double obs_y = sin(p.theta)*obs.x + cos(p.theta)*obs.y + p.y;
+            
+            //calculate particle to landmark distance
+            for (int k = 0; k < single_landmarks.landmark_list.size(); ++k){
+                double distance_obs_to_landmark = dist(obs_x, obs_y, single_landmarks.landmark_list[k].x_f,
+                                       single_landmarks.landmark_list[k].y_f);
+                
+                if (distance_obs_to_landmark < closest_dist_obs_to_landmark){
+                    closest_dist_obs_to_landmark = distance_obs_to_landmark;
+                    closest_id = single_landmarks.landmark_list[k].id_i;
+                }
+            }
+            
+            p.weight *= exp(-0.5*(obs_x - map_landmarks.landmark_list[closest_id-1].x_f)*
+                            (obs_x - map_landmarks.landmark_list[closest_id-1].x_f) /(std_landmark[0] * std_landmark[0])+
+                            -0.5*(obs_y - map_landmarks.landmark_list[closest_id-1].y_f)*
+                            (obs_y - map_landmarks.landmark_list[closest_id-1].y_f) / (std_landmark[1] * std_landmark[1])) /
+                            (2 * M_PI*std_landmark[0] * std_landmark[1]);
+        }
+        weights.push_back(p.weight);
+        single_landmarks.landmark_list.clear();
+    }
    
 }
 
